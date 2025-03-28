@@ -34,11 +34,8 @@ import {
   scrapeThread,
 } from './lib/anime_parser.js';
 
-const port = process.env.PORT;
-if (!port) {
-  console.error("❌ Error: PORT is not set!");
-  process.exit(1);
-}
+// Set port with default fallback
+const port = process.env.PORT || 3000;
 
 const corsOptions = {
   origin: '*',
@@ -50,171 +47,51 @@ const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Middleware for logging requests
+app.use((req, res, next) => {
+  console.log(`📡 Request: ${req.method} ${req.url}`);
+  next();
+});
+
+// Home route
 app.get('/', (req, res) => {
-  res.status(200).json({ message: 'API is running on Railway!' });
+  res.status(200).json({ message: '✅ API is running on Railway!' });
 });
 
-// Example route to verify deployment
+// Health check
 app.get('/ping', (req, res) => {
-  res.status(200).json({ message: 'Pong!' });
+  res.status(200).json({ message: '🏓 Pong!' });
 });
 
-// Routes
-app.get('/search', async (req, res) => {
-  try {
-    const { keyw, page } = req.query;
-    const data = await scrapeSearch({ keyw, page });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
+// Define all routes
+const routes = [
+  { path: '/search', handler: scrapeSearch },
+  { path: '/getRecentlyAdded', handler: scrapeRecentlyAdded },
+  { path: '/getOngoingSeries', handler: scrapeOngoingSeries },
+  { path: '/animeList', handler: scrapeAnimeList },
+  { path: '/animeListAZ', handler: scrapeAnimeAZ },
+  { path: '/popular', handler: scrapePopularAnime },
+  { path: '/anime-movies', handler: scrapeAnimeMovies },
+  { path: '/top-airing', handler: scrapeTopAiringAnime },
+  { path: '/season/:season', handler: scrapeSeason },
+  { path: '/genre/:genre', handler: scrapeGenre },
+  { path: '/getAnime/:id', handler: scrapeAnimeDetails },
+  { path: '/getEpisode/:id', handler: scrapeWatchAnime },
+  { path: '/streamsb/watch/:id', handler: scrapeStreamSB },
+  { path: '/thread/:episodeId', handler: scrapeThread },
+];
 
-app.get('/getRecentlyAdded', async (req, res) => {
-  try {
-    const { page } = req.query;
-    const data = await scrapeRecentlyAdded({ page });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.get('/getOngoingSeries', async (req, res) => {
-  try {
-    const { page } = req.query;
-    const data = await scrapeOngoingSeries({ page });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.get('/animeList', async (req, res) => {
-  try {
-    const { page } = req.query;
-    const data = await scrapeAnimeList({ page });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.get('/animeListAZ', async (req, res) => {
-  try {
-    const { aph, page } = req.query;
-    const data = await scrapeAnimeAZ({ aph, page });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.get('/popular', async (req, res) => {
-  try {
-    const { page } = req.query;
-    const data = await scrapePopularAnime({ page });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.get('/anime-movies', async (req, res) => {
-  try {
-    const { page, aph } = req.query;
-    const data = await scrapeAnimeMovies({ page, aph });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.get('/top-airing', async (req, res) => {
-  try {
-    const { page } = req.query;
-    const data = await scrapeTopAiringAnime({ page });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.get('/season/:season', async (req, res) => {
-  try {
-    const { page } = req.query;
-    const { season } = req.params;
-    const data = await scrapeSeason({ page, season });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.get('/genre/:genre', async (req, res) => {
-  try {
-    const { page } = req.query;
-    const { genre } = req.params;
-    const data = await scrapeGenre({ genre, page });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.get('/getAnime/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const data = await scrapeAnimeDetails({ id });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.get('/getEpisode/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const data = await scrapeWatchAnime({ id });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.get('/streamsb/watch/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const data = await scrapeStreamSB({ id });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-app.get('/thread/:episodeId', async (req, res) => {
-  try {
-    const { episodeId } = req.params;
-    const { page } = req.query;
-    const data = await scrapeThread({ episodeId, page });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+// Dynamically create routes
+routes.forEach(({ path, handler }) => {
+  app.get(path, async (req, res) => {
+    try {
+      const data = await handler(req.params, req.query);
+      res.status(200).json(data);
+    } catch (err) {
+      console.error(`❌ Error on ${req.method} ${req.url}:`, err);
+      res.status(500).json({ error: 'Internal Server Error', details: err.message });
+    }
+  });
 });
 
 // 404 Handler
@@ -223,6 +100,6 @@ app.use((req, res) => {
 });
 
 // Start the server
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${port}`);
 });
