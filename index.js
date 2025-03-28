@@ -35,7 +35,12 @@ import {
 } from './lib/anime_parser.js';
 
 // Set port with default fallback
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
+if (!port) {
+  console.error("❌ Error: PORT is not set!");
+  process.exit(1);
+}
+console.log(`🚀 Server starting on port ${port}...`);
 
 const corsOptions = {
   origin: '*',
