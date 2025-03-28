@@ -34,7 +34,11 @@ import {
   scrapeThread,
 } from './lib/anime_parser.js';
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
+if (!port) {
+  console.error("❌ Error: PORT is not set!");
+  process.exit(1);
+}
 
 const corsOptions = {
   origin: '*',
